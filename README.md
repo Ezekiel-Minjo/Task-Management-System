@@ -123,19 +123,3 @@ Import via phpMyAdmin or:
 mysql -u root -p task_management < task_management.sql
 
 yaml
-Copy
-Edit
-
----
-
-## ✉️ Contact
-
-For any questions, email: [your-email@example.com]
-
----
-
-## ✅ License
-
-This project is for demonstration and internship assessment purposes.
-
----
