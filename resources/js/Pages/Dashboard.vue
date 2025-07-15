@@ -1,6 +1,36 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head } from "@inertiajs/vue3";
+import { ref, onMounted } from "vue";
+import axios from "axios";
+import { usePage } from "@inertiajs/vue3";
+
+const notifications = ref([]);
+
+const page = usePage();
+const userId = page.props.auth.user.id;
+
+const fetchNotifications = async () => {
+    try {
+        const response = await axios.get(`/api/notifications/${userId}`);
+        notifications.value = response.data.filter((n) => !n.read);
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+    }
+};
+
+const markAsRead = async (id) => {
+    try {
+        await axios.put(`/api/notifications/${id}/mark-as-read`);
+        fetchNotifications();
+    } catch (error) {
+        console.error("Error marking as read:", error);
+    }
+};
+
+onMounted(() => {
+    fetchNotifications();
+});
 </script>
 
 <template>
@@ -22,24 +52,29 @@ import { Head } from "@inertiajs/vue3";
 
         <div class="py-8 bg-gray-50 min-h-screen">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <!-- Success Toast -->
-                <div
-                    class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 transition-all duration-1000 ease-in-out opacity-100 animate-bounce"
-                >
-                    <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        ></path>
-                    </svg>
-                    <span class="font-medium">Logged in!</span>
+                <!-- Notifications -->
+                <div v-if="notifications.length" class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                        Notifications
+                    </h2>
+                    <ul class="space-y-2">
+                        <li
+                            v-for="notification in notifications"
+                            :key="notification.id"
+                            class="bg-white rounded-lg shadow p-4 flex justify-between items-center"
+                        >
+                            <span>{{ notification.message }}</span>
+                            <button
+                                class="ml-4 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                                @click="markAsRead(notification.id)"
+                            >
+                                Mark as Read
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div v-else>
+                    <p class="text-gray-600">No new notifications.</p>
                 </div>
 
                 <!-- Quick Actions -->

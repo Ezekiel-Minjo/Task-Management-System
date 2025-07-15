@@ -24,3 +24,4 @@ Route::put('/tasks/{id}', [TaskController::class, 'update']);
 Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
 
 Route::get('/notifications/{userId}', [NotificationController::class, 'index']);
+Route::put('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead']);

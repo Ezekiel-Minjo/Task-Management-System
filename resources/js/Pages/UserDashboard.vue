@@ -18,15 +18,21 @@
                     <li
                         v-for="notification in notifications"
                         :key="notification.id"
-                        class="bg-white rounded-lg shadow p-4"
+                        class="bg-white rounded-lg shadow p-4 flex justify-between items-center"
                     >
-                        {{ notification.message }}
+                        <span>{{ notification.message }}</span>
+                        <button
+                            class="ml-4 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                            @click="markAsRead(notification.id)"
+                        >
+                            Mark as Read
+                        </button>
                     </li>
                 </ul>
             </div>
-
-            <!-- Task Summary Cards -->
-            <!-- (Your cards section here — no changes) -->
+            <div v-else>
+                <p>No new notifications.</p>
+            </div>
 
             <!-- Loading State -->
             <div v-if="isLoading" class="text-center py-12">
@@ -67,7 +73,7 @@
                 v-else
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-                <!-- (Your task cards — no changes) -->
+                <!-- Your task cards — no changes -->
             </div>
         </div>
     </div>
@@ -83,20 +89,6 @@ export default {
             notifications: [],
             isLoading: true,
         };
-    },
-    computed: {
-        pendingCount() {
-            return this.tasks.filter((task) => task.status === "Pending")
-                .length;
-        },
-        inProgressCount() {
-            return this.tasks.filter((task) => task.status === "In Progress")
-                .length;
-        },
-        completedCount() {
-            return this.tasks.filter((task) => task.status === "Completed")
-                .length;
-        },
     },
     mounted() {
         this.fetchTasks();
@@ -121,72 +113,18 @@ export default {
                 const response = await axios.get(
                     `/api/notifications/${userId}`
                 );
-                this.notifications = response.data;
+                this.notifications = response.data.filter((n) => !n.read);
             } catch (error) {
                 console.error("Error fetching notifications:", error);
             }
         },
-        async updateStatus(task) {
+        async markAsRead(id) {
             try {
-                await axios.put(`/api/tasks/${task.id}/status`, {
-                    status: task.status,
-                });
+                await axios.put(`/api/notifications/${id}/mark-as-read`);
+                this.fetchNotifications();
             } catch (error) {
-                console.error("Error updating task status:", error);
-                this.fetchTasks();
+                console.error("Error marking as read:", error);
             }
-        },
-        getStatusBadgeClass(status) {
-            const classes = {
-                Pending: "bg-orange-100 text-orange-800",
-                "In Progress": "bg-blue-100 text-blue-800",
-                Completed: "bg-green-100 text-green-800",
-            };
-            return classes[status] || "bg-gray-100 text-gray-800";
-        },
-        getStatusSelectClass(status) {
-            const classes = {
-                Pending:
-                    "border-orange-300 focus:ring-orange-500 focus:border-orange-500",
-                "In Progress":
-                    "border-blue-300 focus:ring-blue-500 focus:border-blue-500",
-                Completed:
-                    "border-green-300 focus:ring-green-500 focus:border-green-500",
-            };
-            return classes[status] || "border-gray-300";
-        },
-        getTaskBorderClass(status) {
-            const classes = {
-                Pending: "border-l-4 border-l-orange-500",
-                "In Progress": "border-l-4 border-l-blue-500",
-                Completed: "border-l-4 border-l-green-500",
-            };
-            return classes[status] || "border-l-4 border-l-gray-300";
-        },
-        getProgressBarClass(status) {
-            const classes = {
-                Pending: "bg-orange-500",
-                "In Progress": "bg-blue-500",
-                Completed: "bg-green-500",
-            };
-            return classes[status] || "bg-gray-300";
-        },
-        getProgressWidth(status) {
-            const widths = {
-                Pending: "25%",
-                "In Progress": "60%",
-                Completed: "100%",
-            };
-            return widths[status] || "0%";
-        },
-        formatDate(dateString) {
-            if (!dateString) return "";
-            const date = new Date(dateString);
-            return date.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-            });
         },
     },
 };
