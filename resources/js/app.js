@@ -1,6 +1,10 @@
 import "../css/app.css";
 import "./bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
+import axios from "axios";
+
+axios.defaults.baseURL = "http://127.0.0.1:8000";
+axios.defaults.withCredentials = true;
 
 import { createInertiaApp } from "@inertiajs/vue3";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";

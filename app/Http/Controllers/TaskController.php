@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TaskAssignedMail;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use App\Models\Notification;
+
 
 class TaskController extends Controller
 {
@@ -27,8 +31,19 @@ class TaskController extends Controller
             'description' => $request->description,
             'deadline' => $request->deadline,
             'user_id' => $request->user_id,
-            'status' => 'pending'
+            'status' => 'Pending'
         ]);
+
+        // Send email to assigned user
+        Mail::to($task->user->email)->send(new TaskAssignedMail($task));
+
+
+        // Create notification in DB
+        Notification::create([
+        'user_id' => $task->user_id,
+        'message' => 'You have been assigned a new task: ' . $task->title,
+    ]);
+
 
         return response()->json($task->load('user'), 201);
     }
@@ -42,7 +57,7 @@ class TaskController extends Controller
             'description' => 'sometimes|required|string',
             'deadline' => 'sometimes|required|date',
             'user_id' => 'sometimes|required|exists:users,id',
-            'status' => 'sometimes|in:pending,in_progress,completed'
+            'status' => 'sometimes|in:Pending,In Progress,Completed'
         ]);
 
         $task->update($request->only(['title', 'description', 'deadline', 'user_id', 'status']));
@@ -56,5 +71,10 @@ class TaskController extends Controller
         $task->delete();
 
         return response()->json(['message' => 'Task deleted successfully']);
+    }
+
+    public function myTasks()
+    {
+        return auth()->user()->tasks()->get();
     }
 }

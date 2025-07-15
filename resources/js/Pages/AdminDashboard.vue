@@ -572,6 +572,7 @@ export default {
 
         async assignTask() {
             this.loading = true;
+            console.log("Submitting task:", this.newTask);
             try {
                 await axios.post("/api/tasks/assign", this.newTask);
                 this.newTask = {
